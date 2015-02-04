@@ -1,0 +1,290 @@
+<!--
+	I am extremely grateful for the help and guidance provided by my friend mrt (https://github.com/mrt-prodz)
+	in the design and implementation of this site.
+-->
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta charset="utf-8">
+		<link rel="stylesheet" type="text/css" href="style.css" />
+		<title>My Competition Record - rcode.ca</title>
+		<script src="cdata.js"></script>
+		<script>
+			var table;
+			var plist;
+
+			var pagination_size = 8;
+			var page_index;
+
+			window.onload = function()
+			{
+				var cdl = cdata.length;
+
+				plist = document.createElement("ul");
+				plist.setAttribute("class", "pagination");
+
+				oc = function(id)
+				{
+					return function(e) { paginate(id); };
+				};
+
+				oe = function(id)
+				{
+					return function(e) { plist.children[id].style.color = "#2ecc71"; };
+				};
+
+				ol = function(id)
+				{
+					return function(e) { plist.children[id].style.color = "#3498db"; };
+				};
+
+				for(var i = 0; i < Math.ceil(cdl / pagination_size); i ++)
+				{
+					plist.appendChild(document.createElement("li"));
+					plist.lastChild.onclick = oc(i);
+					plist.lastChild.onmouseenter = oe(i);
+					plist.lastChild.onmouseleave = ol(i);
+					plist.lastChild.style.color = "#3498db";
+					plist.lastChild.style.fontWeight = "bold";
+					plist.lastChild.style.cursor = "pointer";
+					plist.lastChild.innerHTML = (i + 1).toString();
+				}
+
+				table = document.createElement("table");
+				table.appendChild(document.createElement("tr"));
+				table.firstChild.setAttribute("class", "zebra");
+
+				table.firstChild.appendChild(document.createElement("th"));
+				table.firstChild.lastChild.innerHTML = "Date (d/m/y)";
+
+				table.firstChild.appendChild(document.createElement("th"));
+				table.firstChild.lastChild.innerHTML = "Competition";
+
+				table.firstChild.appendChild(document.createElement("th"));
+
+				oc = function(id)
+				{
+					return function(e) { toggleDetails(id); };
+				};
+
+				var i;
+				for(i = 0; i < cdl; i ++)
+				{
+					var row = document.createElement("tr");
+					row.setAttribute("class", "zebra");
+
+					row.appendChild(document.createElement("td"));
+					row.lastChild.innerHTML = cdata[i].date;
+
+					row.appendChild(createCompCell(i));
+
+					row.appendChild(document.createElement("td"));
+					row.lastChild.appendChild(document.createElement("a"));
+					row.lastChild.firstChild.href = "javascript: void(0)";
+					row.lastChild.firstChild.onclick = oc(i);
+					row.lastChild.firstChild.innerHTML = "View Details";
+
+					table.appendChild(row);
+				}
+
+				while(i % pagination_size != 0)
+				{
+					var row = document.createElement("tr");
+					row.setAttribute("class", "zebra");
+					row.appendChild(document.createElement("td"));
+					row.appendChild(document.createElement("td"));
+					row.lastChild.innerHTML = "---";
+					row.appendChild(document.createElement("td"));
+
+					table.appendChild(row);
+
+					i ++;
+				}
+
+				paginate(0);
+
+				var content = document.getElementById("content");
+
+				content.appendChild(document.createElement("div"));
+				content.lastChild.style.textAlign = "center";
+				content.lastChild.style.padding = "0";
+				content.lastChild.style.margin = "0";
+				content.lastChild.appendChild(plist);
+
+				content.appendChild(table);
+			};
+
+			function createCompCell(id)
+			{
+				var cell = document.createElement("td");
+				cell.style.width = "500px";
+
+				cell.appendChild(document.createElement("div"));
+				cell.lastChild.innerHTML = cdata[id].name;
+
+				var details = document.createElement("div");
+				details.style.display = "none";
+
+				details.appendChild(document.createElement("h2"));
+				details.lastChild.setAttribute("class", "skinnytop skinnybottom");
+				details.lastChild.innerHTML = cdata[id].name;
+
+				details.appendChild(document.createElement("table"));
+				details.lastChild.setAttribute("class", "skinnytop");
+
+				var row;
+
+				row = document.createElement("tr");
+				row.setAttribute("class", "reset");
+				row.appendChild(document.createElement("th"));
+				row.lastChild.innerHTML = "Organization";
+				row.lastChild.setAttribute("class", "reset righttitle top");
+				row.appendChild(document.createElement("td"));
+				row.lastChild.appendChild(document.createElement("a"));
+				row.lastChild.lastChild.href = orgs[cdata[id].orgid].href;
+				row.lastChild.lastChild.innerHTML = orgs[cdata[id].orgid].name;
+				row.lastChild.setAttribute("class", "reset top");
+				details.lastChild.appendChild(row);
+
+/*				row = document.createElement("tr");
+				row.appendChild(document.createElement("th"));
+				row.lastChild.innerHTML = "Date";
+				row.lastChild.setAttribute("class", "reset righttitle top");
+				row.appendChild(document.createElement("td"));
+				row.lastChild.innerHTML = cdata[id].date;
+				row.lastChild.setAttribute("class", "reset top");
+				details.lastChild.appendChild(row);*/
+
+				row = document.createElement("tr");
+				row.setAttribute("class", "reset");
+				row.appendChild(document.createElement("th"));
+				row.lastChild.innerHTML = "Description";
+				row.lastChild.setAttribute("class", "reset righttitle top");
+				row.appendChild(document.createElement("td"));
+				row.lastChild.innerHTML = cdata[id].desc;
+				row.lastChild.setAttribute("class", "reset top");
+				details.lastChild.appendChild(row);
+
+				for(var i = 0, il = cdata[id].links.length; i < il; i ++)
+				{
+					row = document.createElement("tr");
+					row.appendChild(document.createElement("th"));
+					row.lastChild.setAttribute("class", "reset righttitle top");
+					row.appendChild(document.createElement("td"));
+					row.lastChild.appendChild(document.createElement("a"));
+					row.lastChild.lastChild.href = cdata[id].links[i].href;
+					row.lastChild.lastChild.innerHTML = cdata[id].links[i].desc;
+					row.lastChild.setAttribute("class", "reset top");
+					details.lastChild.appendChild(row);
+				}
+
+				cell.appendChild(details);
+
+				return cell;
+			}
+
+			function toggleDetails(id)
+			{
+				if(table.children[id + 1].children[2].firstChild.innerHTML == "View Details")
+				{
+					table.children[id + 1].children[2].firstChild.innerHTML = "Hide Details";
+					table.children[id + 1].children[1].children[0].style.display = "none";
+					table.children[id + 1].children[1].children[1].style.display = "block";
+				}
+				else
+				{
+					table.children[id + 1].children[2].firstChild.innerHTML = "View Details";
+					table.children[id + 1].children[1].children[0].style.display = "block";
+					table.children[id + 1].children[1].children[1].style.display = "none";
+				}
+			}
+
+			function paginate(index)
+			{
+				var i, il;
+
+				il = plist.children.length;
+				for(i = 0; i < il; i ++)
+					if(i == index)
+						plist.children[i].style.backgroundColor = "#dadada";
+					else
+						plist.children[i].style.backgroundColor = "transparent";
+
+				il = table.children.length - 1;
+
+				for(i = 0; i < Math.min(pagination_size * index, il); i ++)
+					table.children[1 + i].style.display = "none";
+				for(; i < Math.min(pagination_size * (index + 1), il); i ++)
+					table.children[1 + i].style.display = "table-row";
+				for(; i < il; i ++)
+					table.children[1 + i].style.display = "none";
+
+				page_index = index;
+			}
+		</script>
+	</head>
+	<body>
+		<div id="wrapper">
+			<div id="header">
+				<div id="title">
+					<h1>My Competition Record</h1>
+				</div>
+				<div id="navigation">
+					<a class="button" href="https://github.com/sigkill-rcode/">My Github</a>
+					<a class="button" href="crecord.html">Competition Record</a>
+					<a class="button" href="index.html">Home</a>
+				</div>
+			</div>
+			<div id="content">
+				<p>
+					I began programming competitively in grade 9. Throughout high school, I achieved moderate results
+					on the CCC and ECOO competitions. Howevever, despite my modest success, I did not take sufficient
+					initiative in training and was not generally successful at higher levels of competition.
+					Since graduating, I have taken training far more seriously and competed far more prolifically,
+					with the aim of achieving success in online open competitions and in the ACM-ICPC championships.
+					Though I compete purely for my own enjoyment, I believe that competitive programming enriches
+					my abilities as a real-world probem solver.
+				</p>
+				<p>
+					The following table lists every programming contest I have competed in, to date.
+					Where applicable, problems and results are linked.
+					For brevity, test data has generally been omitted from this list.
+					Resources and information with respect to these competitions can be found on:
+					<ul>
+						<li>
+							The <a href="http://www.cemc.uwaterloo.ca/contests/past_contests.html#ccc">CEMC website</a>
+							(CCC problems, test data, results, and selected solutions)
+						</li>
+						<li>
+							The <a href="http://ecoocs.org/past.php">ECOO website</a>
+							(ECOO problems, and, for later years, test data and solutions)
+						</li>
+						<li>
+							The <a href="http://wcipeg.com">PEG online judge</a>
+							(a judge containing the entire CCC and USACO repetoire)
+						</li>
+						<li>
+							The <a href="http://acm.student.cs.uwaterloo.ca/~acm00/">Waterloo ACM page</a>
+							(Waterloo ACM-related problems, test data, and results)
+						</li>
+						<li>
+							The <a href="http://usaco.org">USACO website</a>
+							(USACO problems, results, test data, editorials, and grader)
+						</li>
+						<li>
+							The <a href="http://dmoj.ca">Don Mills Online Judge</a>
+							(Results and judge for DMOJ competitions)
+						</li>
+						<li>
+							<a href="http://codeforces.com">Codeforces</a>
+							(Codeforces problems, editorials, rankings, and grader)
+						</li>
+					</ul>
+				</p>
+			</div>
+			<div id="footer"></div>
+		</div>
+	</body>
+</html>
+
