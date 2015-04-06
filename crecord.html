@@ -9,7 +9,7 @@
 		<meta charset="utf-8">
 		<link rel="stylesheet" type="text/css" href="style.css" />
 		<title>My Competition Record - rcode.ca</title>
-		<script src="cdata.js"></script>
+		<script src="competition_data.js"></script>
 		<script>
 			var table;
 			var plist;
@@ -17,9 +17,11 @@
 			var pagination_size = 8;
 			var page_index;
 
+			var cdata;
+
 			window.onload = function()
 			{
-				var cdl = cdata.length;
+				var cdl = cdata.competitions.length;
 
 				plist = document.createElement("ul");
 				plist.setAttribute("class", "pagination");
@@ -75,7 +77,7 @@
 					row.setAttribute("class", "zebra");
 
 					row.appendChild(document.createElement("td"));
-					row.lastChild.innerHTML = cdata[i].date;
+					row.lastChild.innerHTML = cdata.competitions[i].date;
 
 					row.appendChild(createCompCell(i));
 
@@ -121,14 +123,14 @@
 				cell.style.width = "500px";
 
 				cell.appendChild(document.createElement("div"));
-				cell.lastChild.innerHTML = cdata[id].name;
+				cell.lastChild.innerHTML = cdata.competitions[id].name;
 
 				var details = document.createElement("div");
 				details.style.display = "none";
 
 				details.appendChild(document.createElement("h2"));
 				details.lastChild.setAttribute("class", "skinnytop skinnybottom");
-				details.lastChild.innerHTML = cdata[id].name;
+				details.lastChild.innerHTML = cdata.competitions[id].name;
 
 				details.appendChild(document.createElement("table"));
 				details.lastChild.setAttribute("class", "skinnytop");
@@ -142,8 +144,8 @@
 				row.lastChild.setAttribute("class", "reset righttitle top");
 				row.appendChild(document.createElement("td"));
 				row.lastChild.appendChild(document.createElement("a"));
-				row.lastChild.lastChild.href = orgs[cdata[id].orgid].href;
-				row.lastChild.lastChild.innerHTML = orgs[cdata[id].orgid].name;
+				row.lastChild.lastChild.href = cdata.organizations[cdata.competitions[id].mnem].link;
+				row.lastChild.lastChild.innerHTML = cdata.organizations[cdata.competitions[id].mnem].name;
 				row.lastChild.setAttribute("class", "reset top");
 				details.lastChild.appendChild(row);
 
@@ -162,21 +164,25 @@
 				row.lastChild.innerHTML = "Description";
 				row.lastChild.setAttribute("class", "reset righttitle top");
 				row.appendChild(document.createElement("td"));
-				row.lastChild.innerHTML = cdata[id].desc;
+				row.lastChild.innerHTML = cdata.competitions[id].desc;
 				row.lastChild.setAttribute("class", "reset top");
 				details.lastChild.appendChild(row);
 
-				for(var i = 0, il = cdata[id].links.length; i < il; i ++)
+				for(var i = 0; i < 3; i ++)
 				{
-					row = document.createElement("tr");
-					row.appendChild(document.createElement("th"));
-					row.lastChild.setAttribute("class", "reset righttitle top");
-					row.appendChild(document.createElement("td"));
-					row.lastChild.appendChild(document.createElement("a"));
-					row.lastChild.lastChild.href = cdata[id].links[i].href;
-					row.lastChild.lastChild.innerHTML = cdata[id].links[i].desc;
-					row.lastChild.setAttribute("class", "reset top");
-					details.lastChild.appendChild(row);
+					var field = "link" + ((i == 0) ? 'x' : (i == 1) ? 'y' : 'z');
+					if(cdata.competitions[id][field].desc !== false)
+					{
+						row = document.createElement("tr");
+						row.appendChild(document.createElement("th"));
+						row.lastChild.setAttribute("class", "reset righttitle top");
+						row.appendChild(document.createElement("td"));
+						row.lastChild.appendChild(document.createElement("a"));
+						row.lastChild.lastChild.href = cdata.competitions[id][field].link;
+						row.lastChild.lastChild.innerHTML = cdata.competitions[id][field].desc;
+						row.lastChild.setAttribute("class", "reset top");
+						details.lastChild.appendChild(row);
+					}
 				}
 
 				cell.appendChild(details);

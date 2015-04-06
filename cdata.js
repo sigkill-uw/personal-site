@@ -39,7 +39,7 @@ var cdata = [
 		links: [{desc: "Editorial", href: "http://usaco.org/index.php?page=jan15results"}]
 	},
 	{
-		orgid: 4, date: "13/01/2014", name: "DMOJ Exam Time",
+		orgid: 4, date: "13/01/2014", name: "DMOPC Exam Time",
 		desc: "Solved 4 of 6 problems, finishing 6th of 32.",
 		links: [{desc: "Results", href: "http://www.dmoj.ca/contest/dmopc14ce1/ranking/"}]
 	},
@@ -71,12 +71,12 @@ var cdata = [
 			{desc: "Results", href: "http://www.cemc.uwaterloo.ca/contests/past_contests/2014/2014CCCStage2Results.pdf"}]
 	},
 	{
-		orgid: 1, date: "c. 10/05/2014", name: "ECOO 2014 Provincial Final",
-		desc: "The team underperformed, yet all were glad to have been given the opportunity.",
+		orgid: 1, date: "10/05/2014", name: "ECOO 2014 Provincial Final",
+		desc: "Team underperformed; yet, all were glad to have been given the opportunity.",
 		links: [{desc: "Problem Set, Tests, Solutions", href: "http://ecoocs.org/zip/ECOOCS_2014.zip"}]
 	},
 	{
-		orgid: 1, date: "c. 27/04/2014", name: "ECOO 2014 East Semifinal",
+		orgid: 1, date: "27/04/2014", name: "ECOO 2014 East Semifinal",
 		desc: "The Colonel By team solved 3 of 4 problems, advancing to the final round.",
 		links: [{desc: "Problem Set, Tests, Solutions", href: "http://ecoocs.org/zip/ECOOCS_2014.zip"}]
 	},
