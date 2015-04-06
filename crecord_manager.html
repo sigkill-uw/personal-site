@@ -1,0 +1,342 @@
+<!--
+	Very happy with this interface - it's kludgy in some places but it's probably some of the better code I've written.
+	Really undocumented but whatever. Just paste in the following and import to demo the interface:
+{"organizations":{"cf":{"name":"Codeforces","link":"http://codeforces.com"}},"competitions":[{"name":"CF Good Bye 2014","mnem":"cf","date":"31/12/2014","desc":"Solved 2 problems of 8; sustained a slight loss in rating to end at 1488.","linkx":{"desc":"Problems","link":"http://codeforces.com/contest/500"},"linky":{"desc":"Standings","link":"http://codeforces.com/contest/500/standings"},"linkz":{"desc":false,"link":false}},{"name":"CF Round 284 Div. 2","mnem":"cf","date":"24/12/2014","desc":"Solved 2 out of 5 problems. Lost 64 rating points and fell into the \"Specialist\" category within Div. 2 (rating 1495).","linkx":{"desc":"Problems","link":"http://codeforces.com/contest/499"},"linky":{"desc":"Standings","link":"http://codeforces.com/contest/499/standings"},"linkz":{"desc":false,"link":false}},{"name":"CF Round 283 Div. 2","mnem":"cf","date":"17/12/2014","desc":"Solved 2 out of 5 problems in my Codeforces debut. Was ranked in the \"Expert\" category within Div. 2, with a rating of 1559.","linkx":{"desc":"Problems","link":"http://codeforces.com/contest/496"},"linky":{"desc":"Standings","link":"http://codeforces.com/contest/496/standings"},"linkz":{"desc":false,"link":false}}]}
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta charset="utf-8">
+		<title>Competition Record Manager</title>
+
+		<style type="text/css">
+			table
+			{
+				border-collapse: collapse;
+			}
+
+			th
+			{
+				padding: 8px;
+				border: 1px solid;
+			}
+
+			td
+			{
+				padding: 8px;
+				border: 1px solid;
+			}
+		</style>
+
+		<script>
+			var dobj = {organizations: {}, competitions: []};
+			var text_elem;
+			var orgt_elem;
+			var compt_elem;
+			var buffered_move = null;
+
+			window.onload = function() {
+				text_elem = document.getElementById("text");
+				orgt_elem = document.getElementById("org_table");
+				compt_elem = document.getElementById("comp_table");
+				document.getElementById("ibutton").onclick = import_json;
+				document.getElementById("ebutton").onclick = export_json;
+				document.getElementById("new_org_button").onclick = create_org;
+				document.getElementById("new_comp_button").onclick = create_comp;
+
+				export_json();
+				render_data();
+			};
+
+			function import_json()
+			{
+				dobj = JSON.parse(text_elem.value);
+				render_data();
+			}
+
+			function export_json()
+			{
+				text_elem.value = JSON.stringify(dobj);
+			}
+
+			function render_data()
+			{
+				while(orgt_elem.children.length > 1)
+					orgt_elem.removeChild(orgt_elem.lastChild);
+
+				while(compt_elem.children.length > 1)
+					compt_elem.removeChild(compt_elem.lastChild);
+
+				for(var key in dobj.organizations)
+					add_org_row(key, dobj.organizations[key].name, dobj.organizations[key].link);
+
+				for(var i = 0; i < dobj.competitions.length; i ++)
+					add_comp_row(i, dobj.competitions[i].name, dobj.competitions[i].mnem,
+						dobj.competitions[i].date, dobj.competitions[i].desc, unparse_link_field(dobj.competitions[i].linkx),
+						unparse_link_field(dobj.competitions[i].linky), unparse_link_field(dobj.competitions[i].linkz));
+			}
+
+			function edit_org(elem)
+			{
+				delete dobj.organizations[elem.children[0].innerHTML];
+
+				elem.children[0].innerHTML = safe_prompt("New mnemonic? Set all fields to '' to delete.", elem.children[0].innerHTML);
+				elem.children[1].innerHTML = safe_prompt("New name?", elem.children[1].innerHTML);
+				elem.children[2].innerHTML = safe_prompt("New link?", elem.children[2].innerHTML);
+
+				if(elem.children[0].innerHTML == "" && elem.children[1].innerHTML == "" && elem.children[2].innerHTML == "")
+					elem.parentElement.removeChild(elem);
+				else
+					dobj.organizations[elem.children[0].innerHTML] =
+						{name: elem.children[1].innerHTML, link: elem.children[2].innerHTML};
+			}
+
+			function create_org()
+			{
+				add_org_row("", "", "");
+				edit_org(orgt_elem.lastChild);
+			}
+
+			function add_org_row(mnem, name, link)
+			{
+				var row = document.createElement("tr");
+
+				row.appendChild(document.createElement("td"));
+				row.lastChild.innerHTML = mnem;
+
+				row.appendChild(document.createElement("td"));
+				row.lastChild.innerHTML = name;
+
+				row.appendChild(document.createElement("td"));
+				row.lastChild.innerHTML = link;
+
+				row.appendChild(document.createElement("td"));
+				row.lastChild.appendChild(document.createElement("button"));
+				row.lastChild.lastChild.innerHTML = "Edit";
+				row.lastChild.lastChild.onclick = function(e) { edit_org(e.target.parentElement.parentElement); };
+
+				orgt_elem.appendChild(row);
+			}
+
+			function edit_comp(id)
+			{
+				var elem = compt_elem.children[1 + id];
+
+				elem.children[0].innerHTML = safe_prompt("New name? Set all fields to '' to delete.", elem.children[0].innerHTML);
+				elem.children[1].innerHTML = safe_prompt("New org. mnemonic?", elem.children[1].innerHTML);
+				elem.children[2].innerHTML = safe_prompt("New date?", elem.children[2].innerHTML);
+				elem.children[3].innerHTML = safe_prompt("New description?", elem.children[3].innerHTML);
+				elem.children[4].innerHTML = safe_prompt("New link x?", elem.children[4].innerHTML);
+				elem.children[5].innerHTML = safe_prompt("New link y?", elem.children[5].innerHTML);
+				elem.children[6].innerHTML = safe_prompt("New link z?", elem.children[6].innerHTML);
+
+				if(elem.children[0].innerHTML == "" && elem.children[1].innerHTML == "" && elem.children[2].innerHTML == "" &&
+						elem.children[3].innerHTML == "" && elem.children[4].innerHTML == "" && elem.children[5].innerHTML == "" &&
+						elem.children[6].innerHTML == "")
+				{
+					dobj.competitions.splice(id, 1);
+					remove_comp_row(id);
+				}
+				else
+				{
+					dobj.competitions[id] = {
+						name: elem.children[0].innerHTML,
+						mnem: elem.children[1].innerHTML,
+						date: elem.children[2].innerHTML,
+						desc: elem.children[3].innerHTML,
+						linkx: parse_link_field(elem.children[4].innerHTML),
+						linky: parse_link_field(elem.children[5].innerHTML),
+						linkz: parse_link_field(elem.children[6].innerHTML)};
+				}
+			}
+
+			function create_comp()
+			{
+				add_comp_row(compt_elem.children.length - 1, "", "", "", "", "", "", "");
+				dobj.competitions.push({});
+				edit_comp(compt_elem.children.length - 2);
+			}
+
+
+			function add_comp_row(id, name, mnem, date, desc, lx, ly, lz)
+			{
+				var new_edit_onclick = function(x) { return function() { edit_comp(x); }; };
+				var new_move_onclick = function(x) { return function() { move_comp(x); }; };
+
+				var row = document.createElement("tr");
+
+				row.appendChild(document.createElement("td"));
+				row.lastChild.innerHTML = name;
+
+				row.appendChild(document.createElement("td"));
+				row.lastChild.innerHTML = mnem;
+
+				row.appendChild(document.createElement("td"));
+				row.lastChild.innerHTML = date;
+
+				row.appendChild(document.createElement("td"));
+				row.lastChild.innerHTML = desc;
+
+				row.appendChild(document.createElement("td"));
+				row.lastChild.innerHTML = lx;
+
+				row.appendChild(document.createElement("td"));
+				row.lastChild.innerHTML = ly;
+
+				row.appendChild(document.createElement("td"));
+				row.lastChild.innerHTML = lz;
+
+				row.appendChild(document.createElement("td"));
+				row.lastChild.appendChild(document.createElement("button"));
+				row.lastChild.lastChild.innerHTML = "Edit";
+				row.lastChild.lastChild.onclick = new_edit_onclick(id);
+
+				row.appendChild(document.createElement("td"));
+				row.lastChild.appendChild(document.createElement("button"));
+				row.lastChild.lastChild.innerHTML = "Move";
+				row.lastChild.lastChild.onclick = new_move_onclick(id);
+
+				compt_elem.appendChild(row);
+			}
+
+			function remove_comp_row(id)
+			{
+				var new_edit_onclick = function(x) { return function() { edit_comp(x); }; };
+				var new_move_onclick = function(x) { return function() { move_comp(x); }; };
+
+				compt_elem.removeChild(compt_elem.children[1 + id]);
+
+				for(var i = id; i < dobj.competitions.length; i ++)
+				{
+					var row = compt_elem.children[1 + i];
+
+					row.removeChild(row.lastChild);
+					row.removeChild(row.lastChild);
+
+					row.appendChild(document.createElement("td"));
+					row.lastChild.appendChild(document.createElement("button"));
+					row.lastChild.lastChild.innerHTML = "Edit";
+					row.lastChild.lastChild.onclick = new_edit_onclick(i);
+
+					row.appendChild(document.createElement("td"));
+					row.lastChild.appendChild(document.createElement("button"));
+					row.lastChild.lastChild.innerHTML = "Move";
+					row.lastChild.lastChild.onclick = new_move_onclick(i);
+				}	
+			}
+
+			function place_comp_row_before(from, to)
+			{
+				var data = dobj.competitions[from];
+				dobj.competitions.splice(from, 1);
+				dobj.competitions.splice(to, 0, data);
+
+				var row = compt_elem.children[1 + from];
+
+				compt_elem.removeChild(row);
+				compt_elem.insertBefore(row, compt_elem.children[1 + to]);
+
+				var new_edit_onclick = function(x) { return function() { edit_comp(x); }; };
+				var new_move_onclick = function(x) { return function() { move_comp(x); }; };
+
+				for(var i = Math.min(from, to); i < dobj.competitions.length; i ++)
+				{
+					row = compt_elem.children[1 + i];
+
+					row.removeChild(row.lastChild);
+					row.removeChild(row.lastChild);
+
+					row.appendChild(document.createElement("td"));
+					row.lastChild.appendChild(document.createElement("button"));
+					row.lastChild.lastChild.innerHTML = "Edit";
+					row.lastChild.lastChild.onclick = new_edit_onclick(i);
+
+					row.appendChild(document.createElement("td"));
+					row.lastChild.appendChild(document.createElement("button"));
+					row.lastChild.lastChild.innerHTML = "Move";
+					row.lastChild.lastChild.onclick = new_move_onclick(i);
+				}
+			}
+
+			function move_comp(id)
+			{
+				if(buffered_move == null)
+				{
+					buffered_move = id;
+					for(var i = 1; i < compt_elem.children.length; i ++)
+						compt_elem.children[i].lastChild.lastChild.innerHTML = "Insert Before";
+				}
+				else
+				{
+					place_comp_row_before(buffered_move, id);
+					for(var i = 1; i < compt_elem.children.length; i ++)
+						compt_elem.children[i].lastChild.lastChild.innerHTML = "Move";
+
+					buffered_move = null;
+				}
+			}
+
+			function parse_link_field(li)
+			{
+				var idx = li.indexOf(":");
+
+				if(idx == -1)
+				{
+					d = l = false;
+				}
+				else
+				{
+					d = li.substring(0, idx).trim();
+					l = li.substring(idx + 1).trim();
+				}
+
+				return {desc: d, link: l};
+			}
+
+			function unparse_link_field(pi)
+			{
+				if(pi.desc === false) return "";
+				else return pi.desc + ": " + pi.link;
+			}
+
+			function safe_prompt(x, y)
+			{
+				var r = prompt(x, y);
+				if(!r) return "";
+				else return r;
+			}
+		</script>
+	</head>
+	<body>
+		<textarea id="text" rows="10" cols="60"></textarea>
+		<br />
+		<button id="ibutton">Import</button>
+		<button id="ebutton">Export</button>
+		<br/>
+		<h1>Organizations</h1>
+		<table id="org_table">
+			<tr>
+				<th>Mnemonic</th>
+				<th>Name</th>
+				<th>Link</th>
+				<th><button id="new_org_button">New</button></th>
+			</tr>
+		</table>
+		<h1>Competitions</h1>
+		<table id="comp_table">
+			<tr>
+				<th>Name</th>
+				<th>Org. Mnemonic</th>
+				<th>Date String</th>
+				<th>Description</th>
+				<th>Link X</th>
+				<th>Link Y</th>
+				<th>Link Z</th>
+				<th><button id="new_comp_button">New</button></th>
+			</tr>
+		</table>
+	</body>
+</html>
+
